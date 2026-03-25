@@ -3,4 +3,3 @@ scipy
 opencv-python
 scikit-image
 matplotlib
-Pillow

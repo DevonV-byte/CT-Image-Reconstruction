@@ -47,7 +47,7 @@ The Shepp-Logan phantom — the standard test object in CT imaging — is also i
 **Requirements:** Python 3.8+
 
 ```bash
-git clone https://github.com/your-username/CT-Image-Reconstruction.git
+git clone https://github.com/DevonV-byte/CT-Image-Reconstruction.git
 cd CT-Image-Reconstruction
 pip install -r requirements.txt
 ```
@@ -74,7 +74,7 @@ python main.py --mode <mode>
 ### Run the CLI version
 
 ```bash
-python FourierSliceTheorem_cleaned.py --target Samples/lotus.png --sinogram Samples/lotus_parallel.png
+python FourierSliceTheorem.py --target Samples/lotus.png --sinogram Samples/lotus_parallel.png
 ```
 
 | Argument | Default | Description |
@@ -88,8 +88,8 @@ python FourierSliceTheorem_cleaned.py --target Samples/lotus.png --sinogram Samp
 
 ```
 CT-Image-Reconstruction/
-├── main.py                          # Main entry point (flag-based execution)
-├── FourierSliceTheorem_cleaned.py   # Production-ready CLI version
+├── main.py                          # Main entry point, mode selected via --mode argument
+├── FourierSliceTheorem.py           # Full pipeline CLI version
 ├── BasicFST.py                      # Minimal Fourier Slice Theorem demo
 ├── requirements.txt
 ├── Samples/                         # Sample images and sinograms for testing
@@ -115,7 +115,6 @@ CT-Image-Reconstruction/
 | `opencv-python` | Image I/O and preprocessing |
 | `scikit-image` | Image rotation and resizing |
 | `matplotlib` | Visualization and result plots |
-| `Pillow` | Supplementary image I/O |
 
 ---
 
