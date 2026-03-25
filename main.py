@@ -1,3 +1,14 @@
+# Entry point for the CT image reconstruction pipeline.
+# Loads sample images and runs the selected reconstruction algorithm via CLI argument.
+# Supports Direct Fourier Reconstruction, Filtered Backprojection, fan-beam rebinning,
+# sinogram generation, and sinogram coverage detection.
+#
+# Created: 2024-10-14
+# Updated: 2026-03-25
+# Author: Devon Vanaenrode
+
+# --- Imports ---
+import argparse
 import cv2
 import numpy as np
 import math
@@ -8,53 +19,51 @@ import matplotlib.pyplot as plt
 from skimage.transform import rotate
 from skimage.transform import resize
 
-def main():
-    # TODO: Flags
-    f3_1 = True
-    f3_2 = False
-    f3_3 = False
-    f3_4 = False
-    f3_5_1 = False
-    f3_5_3 = False
+# --- Main loop ---
 
-    target = cv2.imread("Samples/lotus.png", cv2.IMREAD_GRAYSCALE)
+def main():
+    parser = argparse.ArgumentParser(description="CT Image Reconstruction Pipeline")
+    parser.add_argument(
+        "--mode",
+        choices=["fourier", "fbp", "rebin", "sinogram", "detect", "ramlak"],
+        required=True,
+        help=(
+            "fourier  – Direct Fourier Reconstruction (Fourier Slice Theorem)\n"
+            "fbp      – Filtered Backprojection\n"
+            "rebin    – Rebin divergent (fan-beam) sinogram to parallel-beam\n"
+            "sinogram – Generate a sinogram from the Shepp-Logan phantom\n"
+            "detect   – Detect 180° vs 360° sinogram coverage\n"
+            "ramlak   – Filtered Backprojection with RAM-LAK filter"
+        ),
+    )
+    args = parser.parse_args()
+
+    target  = cv2.imread("Samples/lotus.png",          cv2.IMREAD_GRAYSCALE)
     sinogram = cv2.imread("Samples/lotus_parallel.png", cv2.IMREAD_GRAYSCALE)
     div_sino = cv2.imread("Samples/lotus_divergent.png", cv2.IMREAD_GRAYSCALE)
 
-    # 3.1: Direct Fourier Reconstruction
-    if f3_1:
+    if args.mode == "fourier":
         func3_1(target, sinogram, 3)
 
-    # 3.2: Filtered Backprojection Reconstruction
-    if f3_2:
+    elif args.mode == "fbp":
         func3_2(target, sinogram, 1.1)
 
-    # 3.3: Rebinning
-    if f3_3:
+    elif args.mode == "rebin":
         func3_3(div_sino, sinogram)
 
-    # 3.4: Create sinogram based on target image
-    if f3_4:
-        target_sl = cv2.imread("Samples/Shepp_Logan.png", cv2.IMREAD_GRAYSCALE)
-        sino_sl = cv2.imread("Samples/Shepp_Logan_Sino.png", cv2.IMREAD_GRAYSCALE)
+    elif args.mode == "sinogram":
+        target_sl = cv2.imread("Samples/Shepp_Logan.png",     cv2.IMREAD_GRAYSCALE)
+        sino_sl   = cv2.imread("Samples/Shepp_Logan_Sino.png", cv2.IMREAD_GRAYSCALE)
         func3_4(target_sl, sino_sl)
 
-    # 3.5: Extras
-    # 3.5.1: Detect if the sinogram is a 180° or 360° sinogram.
-    if f3_5_1:
+    elif args.mode == "detect":
         func3_5_1(sinogram)
 
-    # 3.5.2: Detect if the sensor images are stacked horizontally or vertically in the sinogram.
-    # Look at output of CTSlice or FB
-
-    # TODO: 3.5.3: Additional filtering approaches.
-    if f3_5_3:
+    elif args.mode == "ramlak":
         func3_2(target, sinogram, 1.1, ram_lak_filter=True)
 
 
-    # 3.5.4: Simple contrast stretching.
-    # Run 3.1
-
+# --- Helpers ---
 
 def CreateSinogram(image, max_angle, num_angles, rotate=False):
     angles = np.linspace(0, max_angle, num_angles)
@@ -62,19 +71,12 @@ def CreateSinogram(image, max_angle, num_angles, rotate=False):
     center = (width - 1) / 2.0, (height - 1) / 2.0
 
     sinogram = np.zeros((len(angles), max(height, width)))
-    
-    counter = 0
 
-    for angle in angles:
+    for i, angle in enumerate(angles):
         rotation_matrix = cv2.getRotationMatrix2D(center, angle, 1.0)
         rotated_image = cv2.warpAffine(image, rotation_matrix, (width, height))
-        if rotate:
-            ax = 1
-        else:
-            ax = 0
-        
-        sinogram[counter, :] = np.sum(rotated_image, axis=ax)
-        counter += 1
+        ax = 1 if rotate else 0
+        sinogram[i, :] = np.sum(rotated_image, axis=ax)
     
     # normalize
     sinogram = (sinogram - sinogram.min()) / (sinogram.max() - sinogram.min())
@@ -90,7 +92,7 @@ def Rebinning(div_sinogram, max_angle=360, FOD=540, FDD=630, sensor_width=120, r
     all_beta = np.linspace(0 / 2, max_angle * (math.pi / 180), num_angles)
     detector_distance = sensor_width / num_detectors
     half_fan_angles = []
-    for d in range(1, (int)(num_detectors / 2) + 1):
+    for d in range(1, int(num_detectors / 2) + 1):
         half_fan_angles.append(math.atan((d * detector_distance) / FDD))
 
     first_half_angles = [ -x for x in half_fan_angles]
@@ -144,17 +146,17 @@ def backProject(sinogram, angular_range=180.0):
     laminogram = (laminogram - laminogram.min()) / (laminogram.max() - laminogram.min())
     return laminogram
 
-def Filter(ffts, filter):
+def Filter(ffts, ramp):
     plt.subplot(3, 2, 3)
     plt.title("Ramp filter")
-    plt.plot(filter)
+    plt.plot(ramp)
     plt.gray()
-    return ffts * filter
+    return ffts * ramp
 
-def FB(sinogram, N, S, filter):
+def FB(sinogram, N, S, ramp):
     frequency_domain_sinogram = fft(sinogram, axis=1)
-    
-    filtered_frequency_domain_sinogram = Filter(frequency_domain_sinogram, filter)
+
+    filtered_frequency_domain_sinogram = Filter(frequency_domain_sinogram, ramp)
     filtered_spatial_domain_sinogram = ifft(filtered_frequency_domain_sinogram, axis=1)
     reconstructed_image = backProject(filtered_spatial_domain_sinogram)
 
@@ -196,9 +198,9 @@ def contrast_stretching_2(image, intensity, pixelRange):
         image[image > 255] = 255.0
 
     # adjust so values are between 0 and 255
-    min = np.min(image)
-    max = np.max(image)
-    reconstruction_contrast_stretching = (image - min) / (max - min) * 255
+    img_min = np.min(image)
+    img_max = np.max(image)
+    reconstruction_contrast_stretching = (image - img_min) / (img_max - img_min) * 255
     # Determine intensity of the contrast stretching
     reconstruction_contrast_stretching *= intensity
     return np.clip(reconstruction_contrast_stretching, 0, 255)
@@ -209,9 +211,9 @@ def contrast_stretching_1(image):
     image[image > 1] = 1.0
 
     # adjust so values are between 0 and 255
-    min = np.min(image)
-    max = np.max(image)
-    reconstruction_contrast_stretching = (image - min) / (max - min) * 255
+    img_min = np.min(image)
+    img_max = np.max(image)
+    reconstruction_contrast_stretching = (image - img_min) / (img_max - img_min) * 255
     # Determine intensity of the contrast stretching
     reconstruction_contrast_stretching *= 3
     return np.clip(reconstruction_contrast_stretching, 0, 255)
@@ -381,11 +383,11 @@ def func3_2(target, sinogram, intensity, ram_lak_filter=False):
 
     if not ram_lak_filter:
         #Ramp filter
-        filter = np.linspace(0, 1, S)
+        ramp = np.linspace(0, 1, S)
     else:
         #ram lak filter
-        temp =np.linspace(1, 0, S)
-        filter = np.sinc(temp)
+        temp = np.linspace(1, 0, S)
+        ramp = np.sinc(temp)
 
     plt.subplot(3, 2, 2)
     plt.title("Sinogram")
@@ -393,7 +395,7 @@ def func3_2(target, sinogram, intensity, ram_lak_filter=False):
     plt.gray()
 
     # execute Filtered backprojection and then add it to the subplots
-    reconstruction_FB = FB(sinogram, N, S, filter)
+    reconstruction_FB = FB(sinogram, N, S, ramp)
     reconstruction_FB_contrast_stretched = contrast_stretching_2(reconstruction_FB, intensity, 255)
 
     plt.subplot(3, 2, 4)

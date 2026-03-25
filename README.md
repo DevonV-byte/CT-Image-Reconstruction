@@ -1,6 +1,6 @@
 # CT Image Reconstruction
 
-A Python implementation of CT (Computed Tomography) image reconstruction algorithms. Given a sinogram — a set of 1D projections captured at multiple angles — this project reconstructs the original 2D cross-sectional image using two classical algorithms: **Filtered Backprojection (FBP)** and **Direct Fourier Reconstruction** via the Fourier Slice Theorem.
+A Python implementation of CT (Computed Tomography) image reconstruction algorithms. Given a sinogram (a set of 1D projections captured at multiple angles) this project reconstructs the original 2D cross-sectional image using two classical algorithms: **Filtered Backprojection (FBP)** and **Direct Fourier Reconstruction** via the Fourier Slice Theorem.
 
 Both parallel-beam and divergent (fan-beam) geometries are supported.
 
@@ -59,19 +59,17 @@ pip install -r requirements.txt
 ### Run the main script
 
 ```bash
-python main.py
+python main.py --mode <mode>
 ```
 
-Edit the feature flags at the top of `main.py` to select which algorithm to run:
-
-| Flag | Description |
+| Mode | Description |
 |------|-------------|
-| `f3_1` | Direct Fourier Reconstruction (Fourier Slice Theorem) |
-| `f3_2` | Filtered Backprojection |
-| `f3_3` | Rebinning (divergent → parallel beam) |
-| `f3_4` | Generate a sinogram from an input image |
-| `f3_5_1` | Detect 180° vs 360° sinogram coverage |
-| `f3_5_3` | RAM-LAK filter variant |
+| `fourier` | Direct Fourier Reconstruction (Fourier Slice Theorem) |
+| `fbp` | Filtered Backprojection with ramp filter |
+| `rebin` | Rebin divergent (fan-beam) sinogram to parallel-beam |
+| `sinogram` | Generate a sinogram from the Shepp-Logan phantom |
+| `detect` | Detect 180° vs 360° sinogram coverage |
+| `ramlak` | Filtered Backprojection with RAM-LAK filter |
 
 ### Run the cleaned, CLI-ready version
 

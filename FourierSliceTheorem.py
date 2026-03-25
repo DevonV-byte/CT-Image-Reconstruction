@@ -1,3 +1,11 @@
+# Full CT image reconstruction pipeline using the Fourier Slice Theorem and Filtered Backprojection.
+# Accepts a sinogram and optional ground-truth image via CLI arguments, automatically detects
+# sinogram orientation and angular coverage, reconstructs the image, and displays the results.
+#
+# Created: 2024-10-28
+# Author: Devon Vanaenrode
+
+# --- Imports ---
 import argparse
 import math
 import cv2

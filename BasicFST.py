@@ -1,6 +1,16 @@
+# Minimal demonstration of CT image reconstruction using the Fourier Slice Theorem.
+# Generates a simple square phantom, computes its sinogram, and reconstructs the image.
+# Intended as a standalone reference implementation.
+#
+# Created: 2024-11-08
+# Author: Devon Vanaenrode
+
+# --- Imports ---
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.fft import fft, ifft, fftfreq
+
+# --- Helpers ---
 
 def ct_reconstruction_fourier_slice_theorem(sinogram):
     num_projections, num_angles = sinogram.shape
@@ -25,7 +35,8 @@ def ct_reconstruction_fourier_slice_theorem(sinogram):
 
     return reconstruction
 
-# Example usage
+# --- Main loop ---
+
 # Generate a simple phantom image
 size = 256
 phantom = np.zeros((size, size))
