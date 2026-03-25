@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(file /c/Users/devon/Projects/CT-Image-Reconstruction/*.png)",
+      "Bash(mkdir -p \"/c/Users/devon/Projects/CT-Image-Reconstruction/Data/samples\")",
+      "Bash(mv \"/c/Users/devon/Projects/CT-Image-Reconstruction/lotus.png\" \"/c/Users/devon/Projects/CT-Image-Reconstruction/Data/samples/\")",
+      "Bash(mv \"/c/Users/devon/Projects/CT-Image-Reconstruction/lotus_parallel.png\" \"/c/Users/devon/Projects/CT-Image-Reconstruction/Data/samples/\")",
+      "Bash(mv \"/c/Users/devon/Projects/CT-Image-Reconstruction/lotus_divergent.png\" \"/c/Users/devon/Projects/CT-Image-Reconstruction/Data/samples/\")",
+      "Bash(mv \"/c/Users/devon/Projects/CT-Image-Reconstruction/Shepp_Logan.png\" \"/c/Users/devon/Projects/CT-Image-Reconstruction/Data/samples/\")"
+    ]
+  }
+}
