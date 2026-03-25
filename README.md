@@ -71,7 +71,7 @@ python main.py --mode <mode>
 | `detect` | Detect 180° vs 360° sinogram coverage |
 | `ramlak` | Filtered Backprojection with RAM-LAK filter |
 
-### Run the cleaned, CLI-ready version
+### Run the CLI version
 
 ```bash
 python FourierSliceTheorem_cleaned.py --target Samples/lotus.png --sinogram Samples/lotus_parallel.png
